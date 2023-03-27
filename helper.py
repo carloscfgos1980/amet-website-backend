@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 
-engine = create_engine("sqlite:///amet.db", echo=True)
+engine = create_engine("sqlite:///instance/amet.db", echo=True)
 
 df = pd.read_excel('Amet_data.xlsx')
 print(df)
