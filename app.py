@@ -16,7 +16,7 @@ app.config['SECRET_KEY'] = 'myKey'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 db.init_app(app)
 
-# engine = create_engine("sqlite:///instance/amet.db", echo=True)
+engine = create_engine("sqlite:///instance/amet.db", echo=True)
 
 # getting date with format from excel file
 today = date.today()
@@ -41,8 +41,7 @@ class PaintingData(db.Model):
     showDOM = db.Column("showDOM", db.BOOLEAN)
     registerNum = db.Column("registerNum", db.Integer)
 
-    def __init__(self, id, title, tech, size, price, img, created, soldDate, sold, reserved, reservedDate, showDOM, registerNum):
-        self.id = id
+    def __init__(self, title, tech, size, price, img, created, soldDate, sold, reserved, reservedDate, showDOM, registerNum):
         self.title = title
         self.tech = tech
         self.size = size
@@ -73,8 +72,7 @@ class Customer(db.Model):
     registerNum = db.Column(
         db.Integer, ForeignKey("paintingsData.registerNum"))
 
-    def __init__(self, id, name, last_name, email, telephone, country, feedback, registerNum):
-        self.id = id
+    def __init__(self, name, last_name, email, telephone, country, feedback, registerNum):
         self.name = name
         self.last_name = last_name
         self.email = email
@@ -98,8 +96,7 @@ class Fan(db.Model):
     country = db.Column("country", db.String(100))
     feedback = db.Column("feedback", db.String(1000))
 
-    def __init__(self, id, name, last_name, telephone, country, email, feedback):
-        self.id = id
+    def __init__(self, name, last_name, telephone, country, email, feedback):
         self.name = name
         self.last_name = last_name
         self.email = email
@@ -195,10 +192,16 @@ def update_painting(id):
     reserved = request.json['reserved']
     registerNum = request.json['registerNum']
 
+    # check if the reserved is False then make the date null
+    def hoy():
+        if painting.reserved is False:
+            return None
+        else:
+            return my_date
+
     painting.reserved = reserved
     painting.registerNum = registerNum
-    painting.reservedDate = my_date
-
+    painting.reservedDate = hoy()
     db.session.commit()
     results = painting_schema.jsonify(painting)
 
@@ -225,7 +228,6 @@ def delete_fan(id):
     return results
 
 
-'''
 # SQL command to retrieve data
 comm1 = "SELECT * FROM paintingsData"
 comm2 = "SELECT * FROM customers"
@@ -241,6 +243,5 @@ with pd.ExcelWriter('Amet_data2.xlsx') as writer:
     df1.to_excel(writer, sheet_name='paintingsData')
     df2.to_excel(writer, sheet_name='customers')
     df3.to_excel(writer, sheet_name='fans')
-'''
 if __name__ == "__main__":
     app.run(debug=True)
