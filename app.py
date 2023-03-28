@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, BOOLE
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 import datetime
+import pandas as pd
 
 app = Flask(__name__)
 DB_NAME = "amet.db"
@@ -11,7 +12,7 @@ db = SQLAlchemy()
 ma = Marshmallow(app)
 CORS(app)
 
-
+engine = create_engine("sqlite:///instance/amet.db", echo=True)
 app.config['SECRET_KEY'] = 'myKey'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 db.init_app(app)
@@ -158,6 +159,7 @@ def add_customer():
                         telephone, country, feedback, registerNum)
     db.session.add(customer)
     db.session.commit()
+
     return customer_schema.jsonify(customer)
 
 
@@ -174,6 +176,7 @@ def add_fan():
               telephone, country, feedback)
     db.session.add(fan)
     db.session.commit()
+
     return fan_schema.jsonify(fan)
 
 
@@ -189,6 +192,7 @@ def update_painting(id):
 
     db.session.commit()
     results = painting_schema.jsonify(painting)
+
     return results
 
 
@@ -198,6 +202,7 @@ def delete_customer(id):
     db.session.delete(painting)
     db.session.commit()
     results = painting_schema.jsonify(painting)
+
     return results
 
 
@@ -207,8 +212,25 @@ def delete_fan(id):
     db.session.delete(painting)
     db.session.commit()
     results = painting_schema.jsonify(painting)
+
     return results
 
+
+# SQL command to retrieve data
+comm1 = "SELECT * FROM paintingsData"
+comm2 = "SELECT * FROM customers"
+comm3 = "SELECT * FROM fans"
+
+# Read data from SQL using pandas
+df1 = pd.read_sql_query(comm1, con=engine)
+df2 = pd.read_sql_query(comm2, con=engine)
+df3 = pd.read_sql_query(comm3, con=engine)
+
+# Export data to excel
+with pd.ExcelWriter('Amet_data2.xlsx') as writer:
+    df1.to_excel(writer, sheet_name='paintingsData')
+    df2.to_excel(writer, sheet_name='customers')
+    df3.to_excel(writer, sheet_name='fans')
 
 if __name__ == "__main__":
     app.run(debug=True)
