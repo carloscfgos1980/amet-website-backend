@@ -1,9 +1,9 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, BOOLEAN
+from sqlalchemy import create_engine, ForeignKey, Column, String, Integer, BOOLEAN, Date
 from flask_marshmallow import Marshmallow
 from flask_cors import CORS
-import datetime
+from datetime import date
 import pandas as pd
 
 app = Flask(__name__)
@@ -12,10 +12,16 @@ db = SQLAlchemy()
 ma = Marshmallow(app)
 CORS(app)
 
-engine = create_engine("sqlite:///instance/amet.db", echo=True)
 app.config['SECRET_KEY'] = 'myKey'
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
 db.init_app(app)
+
+# engine = create_engine("sqlite:///instance/amet.db", echo=True)
+
+# getting date with format from excel file
+today = date.today()
+year = str(today.year)[2:]
+my_date = f"{today.day}-{today.month}-{year}"
 
 
 class PaintingData(db.Model):
@@ -31,11 +37,12 @@ class PaintingData(db.Model):
     soldDate = db.Column("soldDate", db.String)
     sold = db.Column("sold", db.BOOLEAN)
     reserved = db.Column("reserved", db.BOOLEAN)
-    reservedDate = db.Column(db.DateTime, default=datetime.datetime.now)
+    reservedDate = db.Column("reservedDate", db.String)
     showDOM = db.Column("showDOM", db.BOOLEAN)
     registerNum = db.Column("registerNum", db.Integer)
 
-    def __init__(self, title, tech, size, price, img, created, soldDate, sold, reserved, reservedDate, showDOM, registerNum):
+    def __init__(self, id, title, tech, size, price, img, created, soldDate, sold, reserved, reservedDate, showDOM, registerNum):
+        self.id = id
         self.title = title
         self.tech = tech
         self.size = size
@@ -66,7 +73,8 @@ class Customer(db.Model):
     registerNum = db.Column(
         db.Integer, ForeignKey("paintingsData.registerNum"))
 
-    def __init__(self, name, last_name, email, telephone, country, feedback, registerNum):
+    def __init__(self, id, name, last_name, email, telephone, country, feedback, registerNum):
+        self.id = id
         self.name = name
         self.last_name = last_name
         self.email = email
@@ -90,7 +98,8 @@ class Fan(db.Model):
     country = db.Column("country", db.String(100))
     feedback = db.Column("feedback", db.String(1000))
 
-    def __init__(self, name, last_name, telephone, country, email, feedback):
+    def __init__(self, id, name, last_name, telephone, country, email, feedback):
+        self.id = id
         self.name = name
         self.last_name = last_name
         self.email = email
@@ -125,10 +134,9 @@ paintings_schema = PaintingSchema(many=True)
 customer_schema = CustomerSchema()
 fan_schema = FanSchema()
 
-'''
+
 with app.app_context():
     db.create_all()
-'''
 
 
 @app.route('/painting', methods=['GET'])
@@ -189,6 +197,7 @@ def update_painting(id):
 
     painting.reserved = reserved
     painting.registerNum = registerNum
+    painting.reservedDate = my_date
 
     db.session.commit()
     results = painting_schema.jsonify(painting)
@@ -216,6 +225,7 @@ def delete_fan(id):
     return results
 
 
+'''
 # SQL command to retrieve data
 comm1 = "SELECT * FROM paintingsData"
 comm2 = "SELECT * FROM customers"
@@ -231,6 +241,6 @@ with pd.ExcelWriter('Amet_data2.xlsx') as writer:
     df1.to_excel(writer, sheet_name='paintingsData')
     df2.to_excel(writer, sheet_name='customers')
     df3.to_excel(writer, sheet_name='fans')
-
+'''
 if __name__ == "__main__":
     app.run(debug=True)
