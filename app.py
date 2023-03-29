@@ -70,7 +70,7 @@ class Customer(db.Model):
     country = db.Column("country", db.String(100))
     feedback = db.Column("feedback", db.String(1000))
     registerNum = db.Column(
-        db.Integer, ForeignKey("paintingsData.registerNum"))
+        db.Integer, ForeignKey("paintingsReserved.registerNum"))
 
     def __init__(self, name, last_name, email, telephone, country, feedback, registerNum):
         self.name = name
@@ -108,6 +108,31 @@ class Fan(db.Model):
         return f"{self.id} {self.name} {self.last_name} {self.email} {self.telephone} {self.country} {self.feedback}"
 
 
+class PaintingReserved(db.Model):
+    __tablename__ = "paintingsReserved"
+
+    id = db.Column("id", db.Integer, primary_key=True)
+    title = db.Column("title", db.String(100))
+    tech = db.Column("tech", db.String(100))
+    size = db.Column("size", db.String(100))
+    price = db.Column("price", db.Integer)
+    img = db.Column("img", db.String)
+    reservedDate = db.Column("reservedDate", db.String)
+    registerNum = db.Column("registerNum", db.Integer)
+
+    def __init__(self, title, tech, size, price, img, reservedDate, registerNum):
+        self.title = title
+        self.tech = tech
+        self.size = size
+        self.price = price
+        self.img = img
+        self.reservedDate = reservedDate
+        self.registerNum = registerNum
+
+    def __repr__(self):
+        return f"({self.id}) {self.title} {self.tech} {self.size} ({self.price}) {self.img}  {self.reservedDate} ({self.registerNum})"
+
+
 class PaintingSchema(ma.Schema):
     class Meta:
         fields = ('id', 'title', 'tech', 'size',
@@ -126,14 +151,23 @@ class FanSchema(ma.Schema):
                   'email', 'telephone', 'country', 'feedback')
 
 
+class PaintingReservedSchema(ma.Schema):
+    class Meta:
+        fields = ('id', 'title', 'tech', 'size', 'price',
+                  'img', 'reservedDate', 'registerNum')
+
+
 painting_schema = PaintingSchema()
 paintings_schema = PaintingSchema(many=True)
 customer_schema = CustomerSchema()
 fan_schema = FanSchema()
+paintingReserved_schema = PaintingReservedSchema()
+paintingsReserved_schema = PaintingReservedSchema(many=True)
 
-
+'''
 with app.app_context():
     db.create_all()
+'''
 
 
 @app.route('/painting', methods=['GET'])
@@ -148,6 +182,38 @@ def single_painting(id):
     painting = PaintingData.query.get(id)
     results = painting_schema.jsonify(painting)
     return results
+
+
+@app.route('/painting-reserved', methods=['GET'])
+def get_paintingsReserved():
+    available_paintings = PaintingReserved.query.all()
+    results = paintingsReserved_schema.dump(available_paintings)
+    return jsonify(results)
+
+
+@app.route('/painting-reserved/<id>', methods=['GET'])
+def single_paintingsReserved(id):
+    painting = PaintingReserved.query.get(id)
+    results = paintingReserved_schema.jsonify(painting)
+    return results
+
+
+@app.route('/reserved', methods=['POST'])
+def add_paitingReserved():
+    title = request.json['title']
+    tech = request.json['tech']
+    size = request.json['size']
+    price = request.json['price']
+    img = request.json['img']
+    reservedDate = my_date
+    registerNum = request.json['registerNum']
+
+    paint = PaintingReserved(title, tech, size,
+                             price, img, reservedDate, registerNum)
+    db.session.add(paint)
+    db.session.commit()
+
+    return paintingReserved_schema.jsonify(paint)
 
 
 @app.route('/customer', methods=['POST'])
@@ -224,6 +290,16 @@ def delete_fan(id):
     db.session.delete(painting)
     db.session.commit()
     results = painting_schema.jsonify(painting)
+
+    return results
+
+
+@app.route('/delete-paintingReserved/<id>', methods=['DELETE'])
+def delete_paintingReserved(id):
+    painting = PaintingReserved.query.get(id)
+    db.session.delete(painting)
+    db.session.commit()
+    results = paintingReserved_schema.jsonify(painting)
 
     return results
 
