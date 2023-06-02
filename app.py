@@ -315,9 +315,9 @@ df2 = pd.read_sql_query(comm2, con=engine)
 df3 = pd.read_sql_query(comm3, con=engine)
 
 # Export data to excel
-with pd.ExcelWriter('Amet_data2.xlsx') as writer:
-    df1.to_excel(writer, sheet_name='paintingsData')
-    df2.to_excel(writer, sheet_name='customers')
-    df3.to_excel(writer, sheet_name='fans')
+with pd.ExcelWriter('Amet_data3.xlsx') as writer:
+    df1.to_excel(writer, index=False, sheet_name='paintingsData')
+    df2.to_excel(writer, index=False, sheet_name='customers')
+    df3.to_excel(writer, index=False, sheet_name='fans')
 if __name__ == "__main__":
     app.run(debug=True)
