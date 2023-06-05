@@ -5,6 +5,8 @@ from flask_marshmallow import Marshmallow
 from flask_cors import CORS
 from datetime import date
 import pandas as pd
+import write_pdf
+import sent_email_componet
 
 app = Flask(__name__)
 DB_NAME = "amet.db"
@@ -304,20 +306,9 @@ def delete_paintingReserved(id):
     return results
 
 
-# SQL command to retrieve data
-comm1 = "SELECT * FROM paintingsData"
-comm2 = "SELECT * FROM customers"
-comm3 = "SELECT * FROM fans"
+write_pdf.excel(engine)
 
-# Read data from SQL using pandas
-df1 = pd.read_sql_query(comm1, con=engine)
-df2 = pd.read_sql_query(comm2, con=engine)
-df3 = pd.read_sql_query(comm3, con=engine)
+sent_email_componet.sent_mail('bala bla bla')
 
-# Export data to excel
-with pd.ExcelWriter('Amet_data3.xlsx') as writer:
-    df1.to_excel(writer, index=False, sheet_name='paintingsData')
-    df2.to_excel(writer, index=False, sheet_name='customers')
-    df3.to_excel(writer, index=False, sheet_name='fans')
 if __name__ == "__main__":
     app.run(debug=True)
