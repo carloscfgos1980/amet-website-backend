@@ -6,7 +6,7 @@ from flask_cors import CORS
 from datetime import date
 import pandas as pd
 import write_pdf
-import sent_email_componet
+import send_email_componet
 
 app = Flask(__name__)
 DB_NAME = "amet.db"
@@ -237,7 +237,7 @@ def add_customer():
 
     new_customer = f'name: {name}\n last name: {last_name}\n email: {email}\n telephone: {telephone}\n country: {country}\n feedback: {feedback}\n register number: {registerNum}'
 
-    sent_email_componet.email_attachment(new_customer)
+    send_email_componet.email_attachment(new_customer)
 
     return customer_schema.jsonify(customer)
 
@@ -256,11 +256,9 @@ def add_fan():
     db.session.add(fan)
     db.session.commit()
 
-    write_pdf.excel(engine)
-
     new_fan = f'name: {name}\n last name: {last_name}\n email: {email}\n telephone: {telephone}\n country: {country}\n feedback: {feedback}'
 
-    sent_email_componet.email_simple(new_fan)
+    send_email_componet.email_simple(new_fan)
 
     return fan_schema.jsonify(fan)
 
@@ -319,8 +317,6 @@ def delete_paintingReserved(id):
 
 
 write_pdf.excel(engine)
-
-# sent_email_componet.sent_mail('bala bla bla')
 
 if __name__ == "__main__":
     app.run(debug=True)
